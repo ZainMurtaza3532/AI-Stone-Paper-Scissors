@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 
 interface CameraViewProps {
-  videoRef: React.RefObject<HTMLVideoElement>;
+  videoRef: React.RefObject<HTMLVideoElement | null>;
   ready: boolean;
 }
 

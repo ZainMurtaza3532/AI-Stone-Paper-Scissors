@@ -2,14 +2,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { CameraStatus } from "@/types";
 
 interface UseCameraResult {
-  videoRef: React.RefObject<HTMLVideoElement>;
+  videoRef: React.RefObject<HTMLVideoElement | null>;
   status: CameraStatus;
   error: string | null;
   retry: () => void;
 }
 
 export function useCamera(): UseCameraResult {
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const [status, setStatus] = useState<CameraStatus>("idle");
   const [error, setError] = useState<string | null>(null);

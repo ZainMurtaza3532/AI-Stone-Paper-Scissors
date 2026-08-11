@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import useSound from "use-sound";
 import type { HandState } from "@/types";
 import { recognizeSPSGesture, type SPSGesture } from "@/utils/gestureRecognition";
 import { randomMove, getResult, isValidMove, type Move, type GameResult } from "@/utils/gameLogic";
+import countdownSfx from "../assets/sounds/countdown.wav";
+import winSfx from "../assets/sounds/win.wav";
+import loseSfx from "../assets/sounds/lose.wav";
 
 export type GamePhase = "waiting" | "holding" | "countdown" | "reveal" | "result";
 
@@ -46,6 +50,10 @@ export function useGameState(hand: HandState) {
   const rafRef = useRef<number | null>(null);
   const countdownTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const [playCountdown] = useSound(countdownSfx, { volume: 0.3, interrupt: true });
+  const [playWin] = useSound(winSfx, { volume: 0.4, interrupt: true });
+  const [playLose] = useSound(loseSfx, { volume: 0.4, interrupt: true });
+
   const clearCountdown = useCallback(() => {
     if (countdownTimerRef.current) {
       clearTimeout(countdownTimerRef.current);
@@ -57,10 +65,13 @@ export function useGameState(hand: HandState) {
     phaseRef.current = "countdown";
     setState(s => ({ ...s, phase: "countdown", countdown: 3, playerMove }));
 
+    playCountdown();
+
     let count = 3;
     const tick = () => {
       count--;
       if (count > 0) {
+        playCountdown();
         setState(s => ({ ...s, countdown: count }));
         countdownTimerRef.current = setTimeout(tick, COUNTDOWN_INTERVAL);
       } else {
@@ -76,6 +87,8 @@ export function useGameState(hand: HandState) {
 
         countdownTimerRef.current = setTimeout(() => {
           phaseRef.current = "result";
+          if (result === "win") playWin();
+          else if (result === "lose") playLose();
           setState(s => ({ ...s, phase: "result" }));
 
           countdownTimerRef.current = setTimeout(() => {
@@ -98,7 +111,7 @@ export function useGameState(hand: HandState) {
     };
 
     countdownTimerRef.current = setTimeout(tick, COUNTDOWN_INTERVAL);
-  }, []);  // clearCountdown not needed here — countdownTimerRef is accessed directly
+  }, [playCountdown, playWin, playLose]);  // clearCountdown not needed here — countdownTimerRef is accessed directly
 
   // Single long-lived rAF loop. Reads hand via handRef so it never needs to
   // restart when hand updates, avoiding loop teardown/restart every frame.

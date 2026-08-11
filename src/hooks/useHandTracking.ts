@@ -29,7 +29,7 @@ interface UseHandTrackingResult {
  * temporal smoothing internally for lower jitter.
  */
 export function useHandTracking(
-  videoRef: React.RefObject<HTMLVideoElement>,
+  videoRef: React.RefObject<HTMLVideoElement | null>,
   active: boolean
 ): UseHandTrackingResult {
   const [hand, setHand] = useState<HandState>(EMPTY_HAND);
